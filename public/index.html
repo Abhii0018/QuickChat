@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chatting App</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 1.6rem;
+      margin: 0 0 16px;
+      padding: 12px 18px;
+      /* background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); */
+      color: #563939;
+      border-radius: 10px;
+      /* box-shadow: 0 6px 18px rgba(37,117,252,0.18); */
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    #chat-container {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    #messages {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      padding: 8px 12px;
+      margin: 0;
+      border-radius: 8px;
+      max-width: 70%;
+      word-wrap: break-word;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .message .timestamp {
+      display: block;
+      font-size: 0.72rem;
+      opacity: 0.85;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    /* wrapper row to control alignment */
+    .message-row {
+      display: flex;
+      margin: 6px 0;
+    }
+
+    .message-row.my {
+      justify-content: flex-end;
+    }
+
+    .message-row.other {
+      justify-content: flex-start;
+    }
+
+    .my-message {
+      background: linear-gradient(90deg,#3b82f6,#1e40af);
+      color: white;
+      text-align: right;
+    }
+
+    .other-message {
+      background: linear-gradient(90deg,#f87171,#ef4444);
+      color: white;
+      text-align: left;
+    }
+
+    #input-area {
+      display: flex;
+      gap: 6px;
+    }
+
+    input {
+      flex: 1;
+      padding: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>QuickChat</h2>
+
+  <div id="chat-container">
+    <div id="messages"></div>
+
+    <div id="input-area">
+      <input type="text" id="message" placeholder="Enter your message..." />
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    const sendBtn = document.getElementById("sendBtn");
+    const messageInput = document.getElementById("message");
+    const allMessages = document.getElementById("messages");
+
+    let myId = null;
+    socket.on('connect', () => {
+      myId = socket.id;
+    });
+
+    socket.on("message", (data) => {
+      const row = document.createElement('div');
+      row.classList.add('message-row');
+
+      const div = document.createElement("div");
+      div.classList.add("message");
+
+      const isMine = data.id === myId;
+      if (isMine) {
+        row.classList.add('my');
+        div.classList.add("my-message");
+      } else {
+        row.classList.add('other');
+        div.classList.add("other-message");
+      }
+
+      const textDiv = document.createElement('div');
+      textDiv.classList.add('text');
+      textDiv.innerText = data.text;
+
+      const timeDiv = document.createElement('div');
+      timeDiv.classList.add('timestamp');
+      try {
+        timeDiv.innerText = new Date(data.ts).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      } catch (e) {
+        timeDiv.innerText = '';
+      }
+
+      div.appendChild(textDiv);
+      div.appendChild(timeDiv);
+      row.appendChild(div);
+      allMessages.appendChild(row);
+
+      allMessages.scrollTop = allMessages.scrollHeight;
+    });
+
+    sendBtn.addEventListener("click", () => {
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      socket.emit("user-message", message);
+      messageInput.value = "";
+    });
+  </script>
+
+</body>
+</html>
