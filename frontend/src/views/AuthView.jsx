@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import heroImg from '../assets/frontPage.png';
 
 export default function AuthView() {
     const { login, register, authError, setAuthError } = useAuth();
-    const [isLogin, setIsLogin] = useState(true);
+    const [viewMode, setViewMode] = useState('landing'); // 'landing', 'login', 'register'
     const [loading, setLoading] = useState(false);
 
     // Form state
@@ -16,109 +18,146 @@ export default function AuthView() {
         e.preventDefault();
         setLoading(true);
         try {
-            if (isLogin) {
+            if (viewMode === 'login') {
                 await login(email, password);
             } else {
                 await register(username, email, password);
             }
         } catch (err) {
-            // Error handled in context
             console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    const switchMode = (loginMode) => {
-        setIsLogin(loginMode);
+    const switchMode = (mode) => {
+        setViewMode(mode);
         setAuthError(null);
     };
 
     return (
         <div className="auth-view">
             <div className="auth-panel">
-                <div className="auth-brand">
+                <div className="auth-brand" onClick={() => switchMode('landing')} style={{cursor:'pointer'}}>
                     <div className="brand-icon">
                         <MessageSquare size={18} fill="currentColor" strokeWidth={0} />
                     </div>
                     <span className="brand-name">QuickChat</span>
                 </div>
 
-                <div className="auth-box">
-                    <div className="auth-header">
-                        <h1>{isLogin ? 'Sign in to QuickChat' : 'Create your account'}</h1>
-                        <p>{isLogin ? 'Enter your credentials to continue.' : 'Free forever. No credit card required.'}</p>
-                    </div>
-
-                    <div className="tabs" role="tablist">
-                        <button 
-                            className={`tab-btn ${isLogin ? 'active' : ''}`}
-                            onClick={() => switchMode(true)}
-                        >Login</button>
-                        <button 
-                            className={`tab-btn ${!isLogin ? 'active' : ''}`}
-                            onClick={() => switchMode(false)}
-                        >Register</button>
-                    </div>
-
-                    <form onSubmit={handleSubmit} noValidate>
-                        {!isLogin && (
-                            <div className="field">
-                                <label htmlFor="username">Username</label>
-                                <input 
-                                    type="text" 
-                                    id="username" 
-                                    placeholder="e.g. john_doe"
-                                    value={username}
-                                    onChange={e => setUsername(e.target.value)}
-                                    spellCheck="false" 
-                                />
+                <AnimatePresence mode="wait">
+                    {viewMode === 'landing' ? (
+                        <motion.div 
+                            key="landing"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="auth-box center-content"
+                        >
+                            <div className="auth-header">
+                                <h1>The fastest way to chat with your team.</h1>
+                                <p>Join thousands of users who trust QuickChat for their daily communication.</p>
                             </div>
-                        )}
-                        <div className="field">
-                            <label htmlFor="email">Email address</label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                placeholder="you@company.com" 
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                required 
-                            />
-                        </div>
-                        <div className="field">
-                            <label htmlFor="password">Password</label>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                placeholder="Min. 6 characters" 
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                required 
-                            />
-                        </div>
+                            <button className="btn-primary btn-large" onClick={() => switchMode('register')}>
+                                Try QuickChat for Free <ArrowRight size={18} />
+                            </button>
+                            <p className="auth-footer-text">
+                                Already have an account? <span className="link-text" onClick={() => switchMode('login')}>Sign in</span>
+                            </p>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            key="auth-form"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="auth-box"
+                        >
+                            <div className="auth-header">
+                                <h1>{viewMode === 'login' ? 'Welcome back' : 'Create an account'}</h1>
+                                <p>{viewMode === 'login' ? 'Enter your details to continue.' : 'Start your journey with QuickChat today.'}</p>
+                            </div>
 
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                            <span className={loading ? 'hidden' : 'btn-text'}>
-                                {isLogin ? 'Sign in' : 'Create account'}
-                            </span>
-                            {loading && <span className="btn-loader"></span>}
-                        </button>
+                            <div className="tabs">
+                                <button 
+                                    className={`tab-btn ${viewMode === 'login' ? 'active' : ''}`}
+                                    onClick={() => switchMode('login')}
+                                >Login</button>
+                                <button 
+                                    className={`tab-btn ${viewMode === 'register' ? 'active' : ''}`}
+                                    onClick={() => switchMode('register')}
+                                >Register</button>
+                            </div>
 
-                        {authError && <p className="field-error" role="alert">{authError}</p>}
-                    </form>
-                </div>
+                            <form onSubmit={handleSubmit} noValidate>
+                                {viewMode === 'register' && (
+                                    <div className="field">
+                                        <label htmlFor="username">Username</label>
+                                        <input 
+                                            type="text" 
+                                            id="username" 
+                                            placeholder="e.g. john_doe"
+                                            value={username}
+                                            onChange={e => setUsername(e.target.value)}
+                                            spellCheck="false" 
+                                        />
+                                    </div>
+                                )}
+                                <div className="field">
+                                    <label htmlFor="email">Email address</label>
+                                    <input 
+                                        type="email" 
+                                        id="email" 
+                                        placeholder="you@company.com" 
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        required 
+                                    />
+                                </div>
+                                <div className="field">
+                                    <label htmlFor="password">Password</label>
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        placeholder="Min. 6 characters" 
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        required 
+                                    />
+                                </div>
+
+                                <button type="submit" className="btn-primary" disabled={loading}>
+                                    <span className={loading ? 'hidden' : 'btn-text'}>
+                                        {viewMode === 'login' ? 'Sign in' : 'Create account'}
+                                    </span>
+                                    {loading && <span className="btn-loader"></span>}
+                                </button>
+
+                                {authError && <p className="field-error">{authError}</p>}
+                                
+                                <button type="button" className="btn-secondary" onClick={() => switchMode('landing')} style={{marginTop:'12px', width:'100%', background:'transparent', border:'none', color:'var(--c-t2)', fontSize:'13px', cursor:'pointer'}}>
+                                    Back to home
+                                </button>
+                            </form>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            <div className="auth-visual" aria-hidden="true">
+            <div className="auth-visual">
                 <div className="visual-content">
-                    <div className="chat-mockup">
-                        <div className="mock-msg mock-other"><div className="mock-avatar">S</div><div className="mock-bubble">Hey, did you review the PR?</div></div>
-                        <div className="mock-msg mock-mine"><div className="mock-bubble">Just left some comments 👍</div></div>
-                        <div className="mock-msg mock-other"><div className="mock-avatar">S</div><div className="mock-bubble">Perfect, merging now!</div></div>
-                        <div className="mock-msg mock-mine"><div className="mock-bubble">Deploying to staging ✅</div></div>
+                    <motion.h2 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        className="visual-title-animated"
+                    >
+                        Have your best chat.
+                    </motion.h2>
+                    <div className="hero-img-container shadow-premium">
+                        <img src={heroImg} className="hero-mockup-img" alt="QuickChat Interface Mockup" />
                     </div>
-                    <p className="visual-caption">Private, real-time, and secure messaging.</p>
+                    <p className="visual-caption">Private, real-time, and secure messaging everywhere.</p>
                 </div>
             </div>
         </div>
