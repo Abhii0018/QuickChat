@@ -30,7 +30,8 @@ export const ChatProvider = ({ children }) => {
     useEffect(() => {
         if (!token) return;
 
-        const newSocket = io('http://localhost:9000', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000';
+        const newSocket = io(API_URL, {
             auth: { token }
         });
 

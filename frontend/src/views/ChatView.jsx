@@ -188,7 +188,7 @@ function ChatWindow() {
         }
     };
 
-    const baseUrl = axios.defaults.baseURL || 'http://localhost:9000';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000';
 
     return (
         <main className="chat-main">

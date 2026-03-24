@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
 
     // Setup axios defaults
     useEffect(() => {
-        axios.defaults.baseURL = 'http://localhost:9000';
+        axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:9000';
     }, []);
 
     useEffect(() => {
