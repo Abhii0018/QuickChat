@@ -16,6 +16,11 @@ connectDB();
 
 const app = express();
 
+// Health check / welcome route
+app.get('/', (req, res) => {
+    res.status(200).send('QuickChat API is running! 🚀');
+});
+
 // Security Middlewares
 app.use(helmet()); // Set secure HTTP headers
 
